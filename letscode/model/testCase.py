@@ -1,10 +1,6 @@
-from letscode.model.firestore.document import Document
-
 from letscode.model.errors.testCaseError import TestCaseError
-from letscode.model.firestore.document import Collection
-
-@Collection("testsCases")
-class TestCase(Document):
+# a fazer, testar execução. adaptar para testes case na classe
+class TestCase():
 
     def __init__(self, id, entradas, saida):
         if not entradas or (type(entradas) != list and len(entradas) == 0): 
@@ -13,8 +9,7 @@ class TestCase(Document):
         if saida == "" or not saida:
             raise ValueError("Saída inválida para TestCase")
 
-        super().__init__(id)
-
+        self.id = id
         self.entradas = entradas
         self.saida = saida
         
@@ -35,5 +30,16 @@ class TestCase(Document):
             return True
         except TypeError as te:
             return False
+
+    @staticmethod
+    def validarJson(jsonData):
+        if jsonData["id"] != None and jsonData["entradas"] != None and jsonData["saida"]:
+            return True
+        return False
+
+    @staticmethod
+    def fromJson(jsonData):
+        if TestCase.validarJson(jsonData):
+            return TestCase(jsonData["id"], jsonData["entradas"], jsonData["saida"])
 
         

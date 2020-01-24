@@ -10,6 +10,7 @@ from letscode.model.erroProgramacao import ErroProgramacao
 from letscode.model.errors.erroProgramacaoError import ErroProgramacaoError
 
 
+# Realiza diferentes operações no código enviado pelo estudante, como execução, execução com testes cases e visualização de algoritmos.
 class Juiz():
 
     def __init__(self, submissao):
@@ -41,12 +42,14 @@ class Juiz():
 
         return "'["+inputs+"]'"
 
+    # Constrói um trace de execução para o algoritmo do estudante.
+    # Utiliza códigos da biblioteca PythonTutor.
     def executarVisualizacao(self, arquivo):
         jsonTrace = ""
 
-        teste = self.submissao.questao["testsCases"][0]
+        teste = self.submissao.questao.testsCases[0]
         if teste != None:
-            inputs = self.prepararInputs(teste["entradas"])
+            inputs = self.prepararInputs(teste.entradas)
         # TODO: colocar tudo dentro do if, se n tiver teste, n tem como visualizar.
 
         if arquivo.is_arquivo_valido():
@@ -78,21 +81,36 @@ class Juiz():
     def executar(self, arquivo):
 
         if arquivo.is_arquivo_valido():
+            
             msgRetornoAlgoritmo = ""
-            child = pexpect.spawn('python3 '+arquivo.nome())
-            child.expect(pexpect.EOF)
-            msgRetornoAlgoritmo = child.before.decode("utf-8")
+            if len(self.submissao.questao.testsCases) > 0:
+                for teste in self.submissao.questao.testsCases:
 
-            return msgRetornoAlgoritmo
+                    child = pexpect.spawn('python3 '+arquivo.nome())
+                    for entradas in teste.entradas:
+                        child.expect(".*")
+                        child.sendline(entradas)
+
+                    child.expect(pexpect.EOF)
+                    msgRetornoAlgoritmo = child.before.decode("utf-8")
+                    break
+                
+                return self.obterSaidaAlgoritmo(msgRetornoAlgoritmo, self.submissao.questao.testsCases[0].entradas)
+            else:
+                child = pexpect.spawn('python3 '+arquivo.nome())
+                child.expect(pexpect.EOF)
+                msgRetornoAlgoritmo = child.before.decode("utf-8")
+                return msgRetornoAlgoritmo
         else:
             raise JuizError("O arquivo de código não foi encontrado.")
 
+    # Executa o código do estudante comparando-o à testscases de uma questão.
     def executarTestes(self, arquivo):
         resultados = []
         resultadoTeste = False
         msgRetornoAlgoritmo = ""
 
-        for teste in self.submissao.questao["testsCases"]:
+        for teste in self.submissao.questao.testsCases:
             if arquivo.is_arquivo_valido():
                 #if self.matchInputCodigo(teste["entradas"]):
 
@@ -100,7 +118,7 @@ class Juiz():
 
                 try:
 
-                    for entradas in teste["entradas"]:
+                    for entradas in teste.entradas:
                         child.expect(".*")
                         child.sendline(entradas)
 
@@ -108,24 +126,24 @@ class Juiz():
                     msgRetornoAlgoritmo = child.before.decode("utf-8")
                     try:
                         erro = ErroProgramacao(msgRetornoAlgoritmo)
-                        if erro.possuiErroExecucao(msgRetornoAlgoritmo):
+                        if erro.possuiErroExecucao():
                             raise JuizError(
                                 "O código apresentou o seguinte erro '"+erro.tipo+"' na linha "+erro.linha)
                         else:  # Não há erro, verificar o resultado test de testcase normalmente
                             resultadoTeste = self.compararSaidaEsperadaComSaidaAlgoritmo(
-                                msgRetornoAlgoritmo, teste["saida"])
+                                msgRetornoAlgoritmo, teste.saida)
                     finally:
                         child.close()
                 except OSError as e:
                     # TODO: melhorar a mensagem para indicar qual o problema
-                    raise JuizError("O código possui um erro.")
+                    raise JuizError("O código possui um erro."+e)
 
                 #else:
                 #    raise JuizError(
                 #        "A quantidade de inputs em seu código é menor que a quantidade de entradas")
 
-                resultado = ResultadoTestCase(None, teste, self.respostaAlgoritmo(
-                    msgRetornoAlgoritmo, teste["entradas"]), resultadoTeste)
+                resultado = ResultadoTestCase(None, teste, self.obterSaidaAlgoritmo(
+                    msgRetornoAlgoritmo, teste.entradas), resultadoTeste)
 
                 resultados.append(resultado)
             else:
@@ -154,13 +172,30 @@ class Juiz():
 
         return textosInput
 
-    def respostaAlgoritmo(self, resultadoAlgoritmo, entradas):
+    # O output do algoritmo é constituído pelas entradas de uma questao e do que foi impresso com print. Essa função remove as entradas dessa saída
+    def retirarEntradasDoOutput(self, resultadoAlgoritmo, entradas):
+
+        saidas = resultadoAlgoritmo.splitlines()
+       
+        for entrada in entradas:
+            for saida in saidas:
+                if entrada == saida:
+                    saidas.remove(entrada)
+                    break
+        
+        return saidas
+
+
+    def obterSaidaAlgoritmo(self, resultadoAlgoritmo, entradas):
 
         textosInput = self.obterTextosInput()
 
-        #saidas = re.split("\\n(.*)\\r\\n", resultadoAlgoritmo)
-        saidas = resultadoAlgoritmo.splitlines()
-        resultadoAlgoritmo = []
+        
+        #saidas = resultadoAlgoritmo.splitlines()
+        saidas = self.retirarEntradasDoOutput(resultadoAlgoritmo, entradas)
+        entradasRemovidas = []
+
+        outputAlgoritmo = []
         for saida in saidas:
             # Se for um texto que apareceu em razão da entrada do test case ou do input do algoritmo, deve ignorar
             textoEntradaInput = False
@@ -169,18 +204,19 @@ class Juiz():
                     if textoInput in saida:
                         textoEntradaInput = True
                         break
-            for textoEntrada in entradas:  # OU se for uma das entradas do testcase, também ignorar
-                if textoEntrada == saida:
-                    textoEntradaInput = True
-                    break
+            #for textoEntrada in entradas:  # OU se for uma das entradas do testcase, também ignorar
+            #    if textoEntrada == saida and saida not in entradasRemovidas:
+            #        textoEntradaInput = True
+            #        entradasRemovidas.append(textoEntrada)
+            #        break
 
             if not textoEntradaInput:
-                resultadoAlgoritmo.append(saida)
+                outputAlgoritmo.append(saida)
 
-        if len(resultadoAlgoritmo) > 0:
-            return resultadoAlgoritmo[0]
+        if len(outputAlgoritmo) > 0:
+            return outputAlgoritmo[0]
         else:
-            return resultadoAlgoritmo
+            return outputAlgoritmo
 
     def compararSaidaEsperadaComSaidaAlgoritmo(self, resultadoAlgoritmo, resultadoEsperado):
         algoritmoCorreto = False

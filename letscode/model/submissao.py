@@ -1,23 +1,20 @@
-from letscode.model.firestore.document import Document
-from letscode.model.firestore.document import Collection
+from letscode.model.questao import Questao
 
-@Collection("submissao")
-class Submissao(Document):
+class Submissao():
 
-    def __init__(self, id, codigo, estudante, questao):
-        super().__init__(id)
+    def __init__(self, codigo, questao):
         self.codigo = codigo
-        self.estudante = estudante
         self.questao = questao
         self.resultadosTestsCases = []
         self.saida = None
 
-    def objectToDocument(self):
-        document = super().objectToDocument()
-        document["estudanteId"] = self.estudante.id
-        document["questaoId"] = self.questao.id
-
-        return document
+    def getSaida(self):
+        saidaAlgoritmo = []
+        if self.saida != None:
+            for resultado in self.saida.split("\r\n"):
+                if resultado != "" and resultado != "\r" and resultado != "\n":
+                    saidaAlgoritmo.append(resultado)
+        return saidaAlgoritmo
 
     def toJson(self):
         
@@ -25,16 +22,22 @@ class Submissao(Document):
         for resultado in self.resultadosTestsCases:
             resultados.append(resultado.toJson())
 
-        saidaAlgoritmo = []
-        if self.saida != None:
-            for resultado in self.saida.split("\r\n"):
-                if resultado != "" and resultado != "\r" and resultado != "\n":
-                    saidaAlgoritmo.append(resultado)
+        saidaAlgoritmo = self.getSaida()
         
         return {
-            "id":self.id,
             "resultados":resultados,
             "saida":saidaAlgoritmo
         }
+    
+    @staticmethod
+    def fromJson(jsonData):
+        return Submissao(jsonData["submissao"]["codigo"], Questao.fromJson(jsonData["questao"]))
+
+    @staticmethod
+    def validarJson(jsonData):
+        if jsonData["tipo"] != None and jsonData["submissao"] != None and jsonData["submissao"] != "" and jsonData["submissao"]["codigo"] != "" and jsonData["questao"] != None and jsonData["questao"] != "":
+            return True
+
+        return False
 
         

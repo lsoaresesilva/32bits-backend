@@ -14,10 +14,10 @@ class ErroProgramacao():
             return True
         return False
 
-    def possuiErroExecucao(self, erro):
+    def possuiErroExecucao(self):
         
-        linha = re.findall("line ([0-9]+)", erro)
-        tipoErro = re.findall("([a-zA-Z]+Error):", erro) # TODO: ver a necessidade de mudar o código para ficar igual ao de cima: ...Error
+        linha = re.findall("line ([0-9]+)", self.texto)
+        tipoErro = re.findall("([a-zA-Z]+Error):", self.texto) # TODO: ver a necessidade de mudar o código para ficar igual ao de cima: ...Error
         
         erro = False
 
@@ -25,7 +25,7 @@ class ErroProgramacao():
             if(len(tipoErro) == 1) and (len(linha) == 1):
                 self.tipo = tipoErro[0]
                 self.linha = linha[0]
-                erro = True;
+                erro = True
             else:
                 erro = True
 

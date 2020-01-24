@@ -7,8 +7,17 @@ import unittest
 
 class TestSubmissao(unittest.TestCase):
 
+    def test_deve_criar_objeto_de_json(self):
+        json = {
+            "submissao":{
+                "algoritmo"
+            },
+            "resultados":[{"id":"1", "testCaseId":"2", "respostaAlgoritmo":"3", "status":True}, {"id":"2", "testCaseId":"1", "respostaAlgoritmo":"3", "status":False}],
+            "saida":[]
+        }
+    
     def test_deve_gerar_json(self):
-        s = Submissao(None, None, None)
+        s = Submissao(None, None, None, None)
         r1 = ResultadoTestCase(s, TestCase("2", [2], 2), "3", True)
         r1.id = "1"
         r2 = ResultadoTestCase(s, TestCase("1", [2], 2), "3", False)
@@ -17,7 +26,10 @@ class TestSubmissao(unittest.TestCase):
         s.resultadosTestsCases = resultados
         json = {
             "id":s.id,
-            "resultados":[{"id":"1", "testCaseId":"2", "respostaAlgoritmo":"3", "status":True}, {"id":"2", "testCaseId":"1", "respostaAlgoritmo":"3", "status":False}]
+            "resultados":[{"id":"1", "testCaseId":"2", "respostaAlgoritmo":"3", "status":True}, {"id":"2", "testCaseId":"1", "respostaAlgoritmo":"3", "status":False}],
+            "saida":[]
         }
 
-        self.assertDictEqual(json, s.toJson())
+        submissaoJson = s.toJson()
+
+        self.assertDictEqual(json, submissaoJson)

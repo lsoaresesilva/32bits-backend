@@ -7,13 +7,13 @@ from letscode.model.errors.arquivoSubmissaoError import ArquivoSubmissaoError
 
 class ArquivoSubmissao():
 
-    def __init__(self, codigo):
+    def __init__(self, algoritmo):
         
-        if type(codigo) == str and codigo != "":
+        if type(algoritmo) == str and algoritmo != "":
             self.arquivo = self.criarArquivo()
-            self.escreverCodigoNoArquivo(codigo)
+            self.escreverCodigoNoArquivo(algoritmo)
         else:
-            raise ValueError("Código precisa ser informado.")
+            raise ValueError("Algoritmo não pode estar vazio.")
 
     def criarArquivo(self):
         nomeArquivo = self.gerarNomeArquivo()
@@ -41,11 +41,11 @@ class ArquivoSubmissao():
 
         return True
     
-    def escreverCodigoNoArquivo(self, codigo):
+    def escreverCodigoNoArquivo(self, algoritmo):
 
-        codigo = codigo.split("\n")
+        algoritmo = algoritmo.split("\n")
 
-        for linha in codigo:
+        for linha in algoritmo:
             
             # TODO: verificar antes se o arquivo está aberto
             self.arquivo.write(linha+"\n")

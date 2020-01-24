@@ -8,11 +8,9 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 import firebase_admin
 
-
 from letscode.model.testCase import TestCase
 from letscode.model.juiz import Juiz
 from letscode.model.submissao import Submissao
-from letscode.model.estudante import Estudante
 
 from letscode.model.arquivoSubmissao import ArquivoSubmissao
 from letscode.model.errors.juizError import JuizError
@@ -31,37 +29,30 @@ class SubmissaoView(APIView):
         httpStatus = 201
         try:
             
-            if self.submissaoRequestValid(request):
-                # TODO: receber via JSON do frontend
-                #testsCases = TestCase.listAllByQuery(Query("questaoId", "==", request.data["questaoId"]))
+            if Submissao.validarJson(request.data):
                 
-                
-                submissao = Submissao(None, request.data["submissao"]["codigo"], Estudante(request.data["submissao"]["estudanteId"], None), request.data["questao"])
+                submissao = Submissao.fromJson(request.data)
 
                 juiz = Juiz(submissao)
                 arquivo = ArquivoSubmissao(submissao.codigo)
-                
-                if request.data["tipo"] == "testes":
-                    submissao.resultadosTestsCases = juiz.executarTestes(arquivo)
-                    submissao.saida = juiz.executar(arquivo)
-                    json = submissao.toJson()
-                elif request.data["tipo"] == "execução":
-                    submissao.saida = juiz.executar(arquivo)
-                    json = submissao.toJson()
-                else:
+
+                if request.data["tipo"] == "visualização":
                     json = juiz.executarVisualizacao(arquivo)
+                else:
+                    if request.data["tipo"] == "testes":
+                        submissao.resultadosTestsCases = juiz.executarTestes(arquivo)
+                    submissao.saida = juiz.executar(arquivo)
+                    json = submissao.toJson()
             else:    
                 httpStatus = 400
         except Exception as exception:
-            json = {"erro":str(exception)}
+            json = {"mensagem":str(exception)}
             httpStatus = 500
         finally:
             arquivo.apagarArquivo()
             return JsonResponse(json, safe=False, status=httpStatus)
 
-    # TODO: deslocar isto para um model.
-    def submissaoRequestValid(self, request):
-        if request.data["tipo"] != None and request.data["assunto"] != None and request.data["assunto"] != "" and request.data["submissao"] != None and request.data["submissao"] != "" and request.data["questao"] != None and request.data["questao"] != "":
-            return True
 
-        return False
+    @staticmethod
+    def limparSaida(saida):
+        pass
