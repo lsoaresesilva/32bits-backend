@@ -130,6 +130,7 @@ class Juiz():
                             raise JuizError(
                                 "O código apresentou o seguinte erro '"+erro.tipo+"' na linha "+erro.linha)
                         else:  # Não há erro, verificar o resultado test de testcase normalmente
+                            
                             resultadoTeste = self.compararSaidaEsperadaComSaidaAlgoritmo(
                                 msgRetornoAlgoritmo, teste.saida)
                     finally:
@@ -211,6 +212,7 @@ class Juiz():
             #        break
 
             if not textoEntradaInput:
+                saida = self.converterParaDuasCasasDecimaisFloat(saida)
                 outputAlgoritmo.append(saida)
 
         if len(outputAlgoritmo) > 0:
@@ -221,10 +223,10 @@ class Juiz():
     def compararSaidaEsperadaComSaidaAlgoritmo(self, resultadoAlgoritmo, resultadoEsperado):
         algoritmoCorreto = False
 
-        #saidas = re.split("\\r\\n(.*)\\r\\n", resultadoAlgoritmo)
         saidas = resultadoAlgoritmo.splitlines()
         for texto in saidas:
-            if texto == resultadoEsperado:
+            texto = self.converterParaDuasCasasDecimaisFloat(texto)
+            if texto == resultadoEsperado: # TODO: Fazer a comparação para ignorar diferenças após 1 casa decilmal.
                 algoritmoCorreto = True
                 break
 
@@ -237,3 +239,11 @@ class Juiz():
         if len(entradas) == len(totalInputs):
             return True
         return False
+
+    def converterParaDuasCasasDecimaisFloat(self, saida):
+        if len(re.findall("[0-9]+\.[0-9]+", saida)) > 0: # Apenas converterá se for float.
+            saida = float(saida)
+            saida = round(saida, 2)
+            saida = str(saida)
+        return saida
+
