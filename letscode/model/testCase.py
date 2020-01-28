@@ -6,7 +6,7 @@ class TestCase():
         if not entradas or (type(entradas) != list and len(entradas) == 0): 
             raise ValueError("Entradas inválidas para TestCase")
         
-        if saida == "" or not saida:
+        if saida == None:
             raise ValueError("Saída inválida para TestCase")
 
         self.id = id
@@ -33,7 +33,7 @@ class TestCase():
 
     @staticmethod
     def validarJson(jsonData):
-        if jsonData["id"] != None and jsonData["entradas"] != None and jsonData["saida"]:
+        if jsonData["id"] != None and jsonData["entradas"] != None and jsonData["saida"] != None:
             return True
         return False
 

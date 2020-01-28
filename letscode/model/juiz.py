@@ -125,10 +125,9 @@ class Juiz():
                     child.expect(pexpect.EOF)
                     msgRetornoAlgoritmo = child.before.decode("utf-8")
                     try:
-                        erro = ErroProgramacao(msgRetornoAlgoritmo)
-                        if erro.possuiErroExecucao():
-                            raise JuizError(
-                                "O código apresentou o seguinte erro '"+erro.tipo+"' na linha "+erro.linha)
+                        #erro = ErroProgramacao(msgRetornoAlgoritmo)
+                        if ErroProgramacao.possuiErroExecucao(msgRetornoAlgoritmo):
+                            raise JuizError(msgRetornoAlgoritmo)
                         else:  # Não há erro, verificar o resultado test de testcase normalmente
                             
                             resultadoTeste = self.compararSaidaEsperadaComSaidaAlgoritmo(
@@ -241,7 +240,7 @@ class Juiz():
         return False
 
     def converterParaDuasCasasDecimaisFloat(self, saida):
-        if len(re.findall("[0-9]+\.[0-9]+", saida)) > 0: # Apenas converterá se for float.
+        if len(re.findall("^[0-9]+\.[0-9]+$", saida)) > 0: # Apenas converterá se for float.
             saida = float(saida)
             saida = round(saida, 2)
             saida = str(saida)

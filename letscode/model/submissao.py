@@ -10,7 +10,7 @@ class Submissao():
 
     def getSaida(self):
         saidaAlgoritmo = []
-        if self.saida != None:
+        if self.saida != None and len(self.saida) > 0:
             for resultado in self.saida.split("\r\n"):
                 if resultado != "" and resultado != "\r" and resultado != "\n":
                     saidaAlgoritmo.append(resultado)

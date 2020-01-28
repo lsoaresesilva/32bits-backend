@@ -49,7 +49,8 @@ class SubmissaoView(APIView):
             json = {"mensagem":str(exception)}
             httpStatus = 500
         finally:
-            arquivo.apagarArquivo()
+            if arquivo != None:
+                arquivo.apagarArquivo()
             return JsonResponse(json, safe=False, status=httpStatus)
 
 
