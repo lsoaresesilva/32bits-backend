@@ -22,11 +22,11 @@ class Submissao():
         for resultado in self.resultadosTestsCases:
             resultados.append(resultado.toJson())
 
-        saidaAlgoritmo = self.getSaida()
+        #saidaAlgoritmo = self.getSaida()
         
         return {
             "resultados":resultados,
-            "saida":saidaAlgoritmo
+            #"saida":self.saida
         }
     
     @staticmethod

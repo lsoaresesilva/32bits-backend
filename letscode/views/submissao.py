@@ -41,7 +41,7 @@ class SubmissaoView(APIView):
                 else:
                     if request.data["tipo"] == "testes":
                         submissao.resultadosTestsCases = juiz.executarTestes(arquivo)
-                    submissao.saida = juiz.executar(arquivo)
+                    #submissao.saida = juiz.executar(arquivo)
                     json = submissao.toJson()
             else:    
                 httpStatus = 400

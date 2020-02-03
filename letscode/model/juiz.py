@@ -130,8 +130,7 @@ class Juiz():
                             raise JuizError(msgRetornoAlgoritmo)
                         else:  # Não há erro, verificar o resultado test de testcase normalmente
                             
-                            resultadoTeste = self.compararSaidaEsperadaComSaidaAlgoritmo(
-                                msgRetornoAlgoritmo, teste.saida)
+                            resultadoTeste = self.compararSaidaEsperadaComSaidaAlgoritmo(msgRetornoAlgoritmo, teste.saida, teste.entradas)
                     finally:
                         child.close()
                 except OSError as e:
@@ -142,8 +141,7 @@ class Juiz():
                 #    raise JuizError(
                 #        "A quantidade de inputs em seu código é menor que a quantidade de entradas")
 
-                resultado = ResultadoTestCase(None, teste, self.obterSaidaAlgoritmo(
-                    msgRetornoAlgoritmo, teste.entradas), resultadoTeste)
+                resultado = ResultadoTestCase(None, teste, self.obterSaidaAlgoritmo(msgRetornoAlgoritmo, teste.entradas), resultadoTeste)
 
                 resultados.append(resultado)
             else:
@@ -173,15 +171,23 @@ class Juiz():
         return textosInput
 
     # O output do algoritmo é constituído pelas entradas de uma questao e do que foi impresso com print. Essa função remove as entradas dessa saída
-    def retirarEntradasDoOutput(self, resultadoAlgoritmo, entradas):
+    def limparSaidaAlgoritmo(self, resultadoAlgoritmo, entradas, textosInput):
 
-        saidas = resultadoAlgoritmo.splitlines()
-       
-        for entrada in entradas:
-            for saida in saidas:
-                if entrada == saida:
-                    saidas.remove(entrada)
-                    break
+        # Limpar textos utilizados no Input
+        saidas = self.removerTextosSaidaAlgoritmo(textosInput, resultadoAlgoritmo)
+        # Limpar textos das entradas
+        saidas = self.removerTextosSaidaAlgoritmo(entradas, resultadoAlgoritmo)
+
+        return saidas
+        
+
+    def removerTextosSaidaAlgoritmo(self, textos, saidas):
+        if len(textos) > 0 and len(saidas) > 0:
+            for texto in textos:
+                for saida in saidas:
+                    if texto == saida:
+                        saidas.remove(texto)
+                        break
         
         return saidas
 
@@ -189,42 +195,45 @@ class Juiz():
     def obterSaidaAlgoritmo(self, resultadoAlgoritmo, entradas):
 
         textosInput = self.obterTextosInput()
+        saidas = resultadoAlgoritmo.splitlines()
 
-        
-        #saidas = resultadoAlgoritmo.splitlines()
-        saidas = self.retirarEntradasDoOutput(resultadoAlgoritmo, entradas)
+        saidas = self.limparSaidaAlgoritmo(saidas, entradas, textosInput)
         entradasRemovidas = []
 
         outputAlgoritmo = []
         for saida in saidas:
             # Se for um texto que apareceu em razão da entrada do test case ou do input do algoritmo, deve ignorar
-            textoEntradaInput = False
-            for textoInput in textosInput:  # OU se for uma das entradas do testcase, também ignorar
-                if textoInput != "":
-                    if textoInput in saida:
-                        textoEntradaInput = True
-                        break
-            #for textoEntrada in entradas:  # OU se for uma das entradas do testcase, também ignorar
-            #    if textoEntrada == saida and saida not in entradasRemovidas:
-            #        textoEntradaInput = True
-            #        entradasRemovidas.append(textoEntrada)
-            #        break
+            #textoEntradaInput = False
+            #for textoInput in textosInput:  # OU se for uma das entradas do testcase, também ignorar
+            #    if textoInput != "":
+            #        if textoInput in saida:
+            #            textoEntradaInput = True
+            #            break
 
-            if not textoEntradaInput:
-                saida = self.converterParaDuasCasasDecimaisFloat(saida)
-                outputAlgoritmo.append(saida)
+            #if not textoEntradaInput:
+            #    saida = self.converterParaDuasCasasDecimaisFloat(saida)
+            #    outputAlgoritmo.append(saida)
+            saida = self.converterParaDuasCasasDecimaisFloat(saida)
+            outputAlgoritmo.append(saida)
 
-        if len(outputAlgoritmo) > 0:
-            return outputAlgoritmo[0]
-        else:
-            return outputAlgoritmo
 
-    def compararSaidaEsperadaComSaidaAlgoritmo(self, resultadoAlgoritmo, resultadoEsperado):
+        #if len(outputAlgoritmo) > 0:
+        #    return outputAlgoritmo[0]
+        #else:
+        #    return outputAlgoritmo
+        return outputAlgoritmo
+
+    """
+    Há um problema nesse algoritmo. Se houver 3 saídas esperadas e o usuário não fizer nenhum código, mas colocar 3 prints com as respostas, será considerado correto.
+    Para resolver isso é preciso fazer uma forma que o algoritmo 
+    """
+    def compararSaidaEsperadaComSaidaAlgoritmo(self, resultadoAlgoritmo, resultadoEsperado, entradas):
         algoritmoCorreto = False
 
-        saidas = resultadoAlgoritmo.splitlines()
+        #saidas = self.resultadoAlgoritmo.splitlines()
+        saidas = self.obterSaidaAlgoritmo(resultadoAlgoritmo, entradas)
         for texto in saidas:
-            texto = self.converterParaDuasCasasDecimaisFloat(texto)
+            
             if texto == resultadoEsperado: # TODO: Fazer a comparação para ignorar diferenças após 1 casa decilmal.
                 algoritmoCorreto = True
                 break
