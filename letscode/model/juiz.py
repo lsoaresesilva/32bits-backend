@@ -234,11 +234,21 @@ class Juiz():
         saidas = self.obterSaidaAlgoritmo(resultadoAlgoritmo, entradas)
         for texto in saidas:
             
-            if texto == resultadoEsperado: # TODO: Fazer a comparação para ignorar diferenças após 1 casa decilmal.
+            if self.limparSaida(texto) == self.limparSaida(resultadoEsperado): # TODO: Fazer a comparação para ignorar diferenças após 1 casa decilmal.
                 algoritmoCorreto = True
                 break
 
         return algoritmoCorreto
+
+    def limparSaida(self, saida):
+        if isinstance(saida, str):
+            # Remover espaços antes e depois
+            saida = saida.strip()
+            # Converter para minúsculo
+            saida = saida.lower()
+
+        return saida
+        
 
     # Verifica se o código dispõe do quantitativo de inputs necessários para a quantidade de entradas
     def matchInputCodigo(self, entradas):
