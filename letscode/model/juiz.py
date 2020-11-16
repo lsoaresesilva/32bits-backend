@@ -53,7 +53,7 @@ class Juiz():
         # TODO: colocar tudo dentro do if, se n tiver teste, n tem como visualizar.
 
         if arquivo.is_arquivo_valido():
-            #if self.matchInputCodigo(teste["entradas"]):
+            # if self.matchInputCodigo(teste["entradas"]):
             path = os.path.dirname(os.path.realpath(__file__))
             path = path+'/pythontutor/generate_json_trace.py'
             comando = 'python3 '+path+' '+arquivo.nome()+' -i '+inputs
@@ -69,7 +69,7 @@ class Juiz():
                 raise JuizError(
                     "O código apresentou o seguinte erro '"+erro.tipo)
 
-            #else:
+            # else:
             #    raise JuizError(
             #        "A quantidade de inputs em seu código é menor/maior que a quantidade de entradas")
         else:
@@ -81,7 +81,7 @@ class Juiz():
     def executar(self, arquivo):
 
         if arquivo.is_arquivo_valido():
-            
+
             msgRetornoAlgoritmo = ""
             if len(self.submissao.questao.testsCases) > 0:
                 for teste in self.submissao.questao.testsCases:
@@ -94,7 +94,7 @@ class Juiz():
                     child.expect(pexpect.EOF)
                     msgRetornoAlgoritmo = child.before.decode("utf-8")
                     break
-                
+
                 return self.obterSaidaAlgoritmo(msgRetornoAlgoritmo, self.submissao.questao.testsCases[0].entradas)
             else:
                 child = pexpect.spawn('python3 '+arquivo.nome())
@@ -112,7 +112,7 @@ class Juiz():
 
         for teste in self.submissao.questao.testsCases:
             if arquivo.is_arquivo_valido():
-                #if self.matchInputCodigo(teste["entradas"]):
+                # if self.matchInputCodigo(teste["entradas"]):
 
                 child = pexpect.spawn('python3 '+arquivo.nome())
 
@@ -129,19 +129,21 @@ class Juiz():
                         if ErroProgramacao.possuiErroExecucao(msgRetornoAlgoritmo):
                             raise JuizError(msgRetornoAlgoritmo)
                         else:  # Não há erro, verificar o resultado test de testcase normalmente
-                            
-                            resultadoTeste = self.compararSaidaEsperadaComSaidaAlgoritmo(msgRetornoAlgoritmo, teste.saida, teste.entradas)
+
+                            resultadoTeste = self.compararSaidaEsperadaComSaidaAlgoritmo(
+                                msgRetornoAlgoritmo, teste.saida, teste.entradas)
                     finally:
                         child.close()
                 except OSError as e:
                     # TODO: melhorar a mensagem para indicar qual o problema
                     raise JuizError("O código possui um erro."+e)
 
-                #else:
+                # else:
                 #    raise JuizError(
                 #        "A quantidade de inputs em seu código é menor que a quantidade de entradas")
 
-                resultado = ResultadoTestCase(None, teste, self.obterSaidaAlgoritmo(msgRetornoAlgoritmo, teste.entradas), resultadoTeste)
+                resultado = ResultadoTestCase(None, teste, self.obterSaidaAlgoritmo(
+                    msgRetornoAlgoritmo, teste.entradas), resultadoTeste)
 
                 resultados.append(resultado)
             else:
@@ -174,12 +176,12 @@ class Juiz():
     def limparSaidaAlgoritmo(self, resultadoAlgoritmo, entradas, textosInput):
 
         # Limpar textos utilizados no Input
-        saidas = self.removerTextosSaidaAlgoritmo(textosInput, resultadoAlgoritmo)
+        saidas = self.removerTextosSaidaAlgoritmo(
+            textosInput, resultadoAlgoritmo)
         # Limpar textos das entradas
         saidas = self.removerTextosSaidaAlgoritmo(entradas, resultadoAlgoritmo)
 
         return saidas
-        
 
     def removerTextosSaidaAlgoritmo(self, textos, saidas):
         if len(textos) > 0 and len(saidas) > 0:
@@ -188,9 +190,8 @@ class Juiz():
                     if texto == saida:
                         saidas.remove(texto)
                         break
-        
-        return saidas
 
+        return saidas
 
     def obterSaidaAlgoritmo(self, resultadoAlgoritmo, entradas):
 
@@ -204,22 +205,21 @@ class Juiz():
         for saida in saidas:
             # Se for um texto que apareceu em razão da entrada do test case ou do input do algoritmo, deve ignorar
             #textoEntradaInput = False
-            #for textoInput in textosInput:  # OU se for uma das entradas do testcase, também ignorar
+            # for textoInput in textosInput:  # OU se for uma das entradas do testcase, também ignorar
             #    if textoInput != "":
             #        if textoInput in saida:
             #            textoEntradaInput = True
             #            break
 
-            #if not textoEntradaInput:
+            # if not textoEntradaInput:
             #    saida = self.converterParaDuasCasasDecimaisFloat(saida)
             #    outputAlgoritmo.append(saida)
             saida = self.converterParaDuasCasasDecimaisFloat(saida)
             outputAlgoritmo.append(saida)
 
-
-        #if len(outputAlgoritmo) > 0:
+        # if len(outputAlgoritmo) > 0:
         #    return outputAlgoritmo[0]
-        #else:
+        # else:
         #    return outputAlgoritmo
         return outputAlgoritmo
 
@@ -227,16 +227,23 @@ class Juiz():
     Há um problema nesse algoritmo. Se houver 3 saídas esperadas e o usuário não fizer nenhum código, mas colocar 3 prints com as respostas, será considerado correto.
     Para resolver isso é preciso fazer uma forma que o algoritmo 
     """
+
     def compararSaidaEsperadaComSaidaAlgoritmo(self, resultadoAlgoritmo, resultadoEsperado, entradas):
         algoritmoCorreto = False
 
         #saidas = self.resultadoAlgoritmo.splitlines()
         saidas = self.obterSaidaAlgoritmo(resultadoAlgoritmo, entradas)
-        for texto in saidas:
-            
-            if self.limparSaida(texto) == self.limparSaida(resultadoEsperado): # TODO: Fazer a comparação para ignorar diferenças após 1 casa decilmal.
+        if len(saidas) == 1:
+            for texto in saidas:
+
+                # TODO: Fazer a comparação para ignorar diferenças após 1 casa decilmal.
+                if self.limparSaida(texto) == self.limparSaida(resultadoEsperado):
+                    algoritmoCorreto = True
+                    break
+        elif len(saidas) > 1:
+            # TODO: Fazer a comparação para ignorar diferenças após 1 casa decilmal.
+            if saidas == resultadoEsperado:
                 algoritmoCorreto = True
-                break
 
         return algoritmoCorreto
 
@@ -248,9 +255,9 @@ class Juiz():
             saida = saida.lower()
 
         return saida
-        
 
     # Verifica se o código dispõe do quantitativo de inputs necessários para a quantidade de entradas
+
     def matchInputCodigo(self, entradas):
         totalInputs = re.findall("input", self.submissao.codigo)
 
@@ -259,9 +266,9 @@ class Juiz():
         return False
 
     def converterParaDuasCasasDecimaisFloat(self, saida):
-        if len(re.findall("^[0-9]+\.[0-9]+$", saida)) > 0: # Apenas converterá se for float.
+        # Apenas converterá se for float.
+        if len(re.findall("^[0-9]+\.[0-9]+$", saida)) > 0:
             saida = float(saida)
             saida = round(saida, 2)
             saida = str(saida)
         return saida
-
