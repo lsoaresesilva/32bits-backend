@@ -237,9 +237,15 @@ class Juiz():
             for texto in saidas:
 
                 # TODO: Fazer a comparação para ignorar diferenças após 1 casa decilmal.
-                if self.limparSaida(texto) == self.limparSaida(resultadoEsperado):
-                    algoritmoCorreto = True
-                    break
+                if isinstance(resultadoEsperado, str):
+                    if self.limparSaida(texto) == self.limparSaida(resultadoEsperado):
+                        algoritmoCorreto = True
+                        break
+                else:
+                    if len(resultadoEsperado) == 1:
+                        if self.limparSaida(texto) == resultadoEsperado[0]:
+                            algoritmoCorreto = True
+                            break
         elif len(saidas) > 1:
             # TODO: Fazer a comparação para ignorar diferenças após 1 casa decilmal.
             if saidas == resultadoEsperado:

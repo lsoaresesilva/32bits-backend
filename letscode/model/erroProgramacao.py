@@ -2,13 +2,14 @@ import re
 
 from letscode.model.errors.erroProgramacaoError import ErroProgramacaoError
 
+
 class ErroProgramacao():
     def __init__(self, erro):
         self.texto = erro
         self.tipo = None
         self.linha = None
         self.getErrorData(erro)
-        
+
     """
     def getErrorData(self, erro):
         linha = re.findall("line ([0-9]+)", self.texto)
@@ -30,13 +31,13 @@ class ErroProgramacao():
     """
     @staticmethod
     def possuiErroExecucao(erro):
-        
+
         linha = re.findall("line ([0-9]+)", erro)
-        tipo = re.findall("([a-zA-Z]+Error):", erro) # TODO: ver a necessidade de mudar o código para ficar igual ao de cima: ...Error
+        # TODO: ver a necessidade de mudar o código para ficar igual ao de cima: ...Error
+        tipo = re.findall("([a-zA-Z]+Error):", erro)
 
         if tipo and linha:
-            if(len(tipo) == 1) and (len(linha) == 1):
+            if(len(tipo) == 1) and (len(linha) == 1 or len(linha) > 0):
                 return True
 
         return False
-
