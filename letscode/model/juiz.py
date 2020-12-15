@@ -9,8 +9,11 @@ from letscode.model.submissao import Submissao
 from letscode.model.erroProgramacao import ErroProgramacao
 from letscode.model.errors.erroProgramacaoError import ErroProgramacaoError
 
+##
 
 # Realiza diferentes operações no código enviado pelo estudante, como execução, execução com testes cases e visualização de algoritmos.
+
+
 class Juiz():
 
     def __init__(self, submissao):
